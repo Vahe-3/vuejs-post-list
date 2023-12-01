@@ -22,7 +22,10 @@ export default {
                       {id: Math.random(), name: 'Sort by body', value: 'body'} 
                      ] as SelectOption[],
       isSearchActive: false,
-      searchText: ''
+      searchText: '',
+      page: 1,
+      limit: 10,
+      totalPages: 0,
     }
   },
 
@@ -41,11 +44,21 @@ export default {
       this.isSearchActive = false
     },
 
+    handlePaginationClick(value: number) {
+      this.page = value;
+    },
+
     async fetchPosts() {
       try {
         this.isPostsLoading = true;
         setTimeout( async () => {
-          const response = await axios.get('https://jsonplaceholder.typicode.com/posts?_limit=10');
+          const response = await axios.get('https://jsonplaceholder.typicode.com/posts', {
+            params: {
+              _limit: this.limit,
+              _page: this.page,
+            }
+          });
+          this.totalPages = Math.ceil(response.headers['x-total-count'] / this.limit);
           this.posts = response.data;
           this.isPostsLoading = false;
         }, 1000)
@@ -90,8 +103,12 @@ export default {
         <my-button  @click="handleSearchClick">Search</my-button>
         <my-button  @click="isSearchActive = false">Close</my-button>
       </div>
-
     </header>
+    <nav class="nav">
+    <div class="pagination">
+      <div v-for="page in totalPages" @click="handlePaginationClick(page)" class="pagination-button">{{ page }}</div>
+    </div>
+    </nav>
     <body class="body">
   <my-dialog :show="showDialog" @close="showDialog = false">
     <add-post-form @create="addPost" />
@@ -133,6 +150,33 @@ export default {
 .sort-search{
   display: flex;
   align-items: center;
+}
+
+.nav{
+  height: 50px;
+  background-color: #f5ffe4;
+  margin: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pagination{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.pagination-button{
+  width: 30px;
+  height: fit-content;
+  padding: 5px;
+  background-color: #C6C9B9;
+  display: flex;
+  justify-content: center;
+  border-radius: 12px;
+  cursor: pointer;
 }
 
 
